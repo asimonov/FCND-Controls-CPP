@@ -29,10 +29,15 @@ INCLUDE Simulation.txt
 
 # make sure the controller is off
 [QuadControlParams]
-kpPosXY = 0
+kpPQR = 50,50,7
+#23,23,5
+kpBank = 2
+#5
 kpPosZ = 0
-kpVelXY = 0
+#1
 kpVelZ = 0
-#kpBank = 0
+#4
+
+kpPosXY = 0
+kpVelXY = 0
 kpYaw = 0
-#kpPQR = 0,0,0
