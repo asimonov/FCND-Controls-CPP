@@ -73,17 +73,12 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
   float l = L/sqrtf(2.f);
   float txl = momentCmd.x / l;
   float tyl = momentCmd.y / l;
-  float tzk = momentCmd.z / kappa;
+  float tzk = momentCmd.z / -kappa;
 
   cmd.desiredThrustsN[0] = (collThrustCmd + txl + tyl + tzk) / 4.f; // front left
   cmd.desiredThrustsN[1] = (collThrustCmd - txl + tyl - tzk) / 4.f; // front right
-  cmd.desiredThrustsN[2] = (collThrustCmd - txl - tyl + tzk) / 4.f; // rear left
-  cmd.desiredThrustsN[3] = (collThrustCmd + txl - tyl - tzk) / 4.f; // rear right
-
-//  cmd.desiredThrustsN[0] = mass * 9.81f / 4.f; // front left
-//  cmd.desiredThrustsN[1] = mass * 9.81f / 4.f; // front right
-//  cmd.desiredThrustsN[2] = mass * 9.81f / 4.f; // rear left
-//  cmd.desiredThrustsN[3] = mass * 9.81f / 4.f; // rear right
+  cmd.desiredThrustsN[2] = (collThrustCmd + txl - tyl - tzk) / 4.f; // rear left
+  cmd.desiredThrustsN[3] = (collThrustCmd - txl - tyl + tzk) / 4.f; // rear right
 
   cmd.desiredThrustsN[0] = CONSTRAIN(cmd.desiredThrustsN[0], minMotorThrust, maxMotorThrust);
   cmd.desiredThrustsN[1] = CONSTRAIN(cmd.desiredThrustsN[1], minMotorThrust, maxMotorThrust);
@@ -153,6 +148,8 @@ V3F QuadControl::RollPitchControl(V3F accelCmd, Quaternion<float> attitude, floa
   {
     float target_R13 = -CONSTRAIN(accelCmd[0] / c_d, -1.f, 1.f);
     float target_R23 = -CONSTRAIN(accelCmd[1] / c_d, -1.f, 1.f);
+//    float target_R13 = -(accelCmd[0] / c_d);
+//    float target_R23 = -(accelCmd[1] / c_d);
 
     pqrCmd[0] = (1 / R(2, 2)) * \
                     (-R(1, 0) * kpBank * (R(0, 2) - target_R13) + \
@@ -236,9 +233,9 @@ V3F QuadControl::LateralPositionControl(V3F posCmd, V3F velCmd, V3F pos, V3F vel
   V3F accelCmd = accelCmdFF;
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-
-  
-
+  V3F err = posCmd - pos;
+  V3F err_vel = velCmd - vel;
+  accelCmd += kpPosXY * err + kpVelXY * err_vel;
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
   return accelCmd;
