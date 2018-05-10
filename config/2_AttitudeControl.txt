@@ -33,18 +33,14 @@ INCLUDE Simulation.txt
 
 # make sure position control is turned off here
 [QuadControlParams]
-#kpPosXY = 0
-#kpPosZ = 0
-#kpVelXY = 0
-#kpVelZ = 0
 
-kpPQR = 85,85,20
+kpPQR = 85,85,9
 #23,23,5
-kpBank = 17
+kpBank = 8
 #5
-kpPosZ = 1
+kpPosZ = 9.86
 #1
-kpVelZ = 4
+kpVelZ = 5.65
 #4
 
 kpPosXY = 0

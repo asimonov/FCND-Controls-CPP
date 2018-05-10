@@ -33,9 +33,9 @@ kpPQR = 50,50,7
 #23,23,5
 kpBank = 2
 #5
-kpPosZ = 0
+kpPosZ = 3
 #1
-kpVelZ = 0
+kpVelZ = 12
 #4
 
 kpPosXY = 0
