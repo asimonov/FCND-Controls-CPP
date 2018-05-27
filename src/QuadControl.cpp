@@ -81,10 +81,10 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
   cmd.desiredThrustsN[3] = (collThrustCmd - txl - tyl + tzk) / 4.f; // rear right
 
   // return thrust as positive. i.e. in body frame.
-//  cmd.desiredThrustsN[0] = CONSTRAIN(cmd.desiredThrustsN[0], minMotorThrust, maxMotorThrust);
-//  cmd.desiredThrustsN[1] = CONSTRAIN(cmd.desiredThrustsN[1], minMotorThrust, maxMotorThrust);
-//  cmd.desiredThrustsN[2] = CONSTRAIN(cmd.desiredThrustsN[2], minMotorThrust, maxMotorThrust);
-//  cmd.desiredThrustsN[3] = CONSTRAIN(cmd.desiredThrustsN[3], minMotorThrust, maxMotorThrust);
+  cmd.desiredThrustsN[0] = CONSTRAIN(cmd.desiredThrustsN[0], minMotorThrust, maxMotorThrust);
+  cmd.desiredThrustsN[1] = CONSTRAIN(cmd.desiredThrustsN[1], minMotorThrust, maxMotorThrust);
+  cmd.desiredThrustsN[2] = CONSTRAIN(cmd.desiredThrustsN[2], minMotorThrust, maxMotorThrust);
+  cmd.desiredThrustsN[3] = CONSTRAIN(cmd.desiredThrustsN[3], minMotorThrust, maxMotorThrust);
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -148,10 +148,8 @@ V3F QuadControl::RollPitchControl(V3F accelCmd, Quaternion<float> attitude, floa
 
   if (collThrustCmd > 0.0)
   {
-//    float target_R13 = CONSTRAIN(accelCmd[0] / c_d, -1.f, 1.f);
-//    float target_R23 = CONSTRAIN(accelCmd[1] / c_d, -1.f, 1.f);
-    float target_R13 = (accelCmd[0] / c_d);
-    float target_R23 = (accelCmd[1] / c_d);
+    float target_R13 = CONSTRAIN(accelCmd[0] / c_d, -1.f, 1.f);
+    float target_R23 = CONSTRAIN(accelCmd[1] / c_d, -1.f, 1.f);
 
     pqrCmd[0] = (1 / R(2, 2)) * \
                     (-R(1, 0) * kpBank * (R(0, 2) - target_R13) + \
@@ -213,7 +211,7 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
   // negative to get higher in NED. gravity is positive
   thrust = - (kpPosZ * err + kpVelZ * vel_err + KiPosZ*integratedAltitudeError + mass*(accelZCmd-CONST_GRAVITY)) / r22;
   // motors should not be saturated
-  thrust = CONSTRAIN(thrust, 4.f*minMotorThrust, 4.f*maxMotorThrust);
+  //thrust = CONSTRAIN(thrust, 4.f*minMotorThrust, 4.f*maxMotorThrust);
   /////////////////////////////// END STUDENT CODE ////////////////////////////
   return thrust;
 }
