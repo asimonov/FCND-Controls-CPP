@@ -195,18 +195,18 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
   float err = posZCmd - posZ; // negative if need to get higher
   float constrained_vel = velZCmd;
-  if (constrained_vel>0.f)
-    constrained_vel = CONSTRAIN(constrained_vel, 0.f, maxDescentRate);
-  else
-    constrained_vel = CONSTRAIN(constrained_vel, -maxAscentRate, 0.f);
+//  if (constrained_vel>0.f)
+//    constrained_vel = CONSTRAIN(constrained_vel, 0.f, maxDescentRate);
+//  else
+//    constrained_vel = CONSTRAIN(constrained_vel, -maxAscentRate, 0.f);
   float vel_err = constrained_vel - velZ;
   // integral error.
-  if (fabsf(vel_err) < 2.0f)
+//  if (fabsf(vel_err) < 2.0f)
     // only accumulate it when we are sufficiently close to target
     integratedAltitudeError += err*dt;
-  else
+//  else
     // reset integral
-    integratedAltitudeError = 0.f;
+//    integratedAltitudeError = 0.f;
   float r22 = R(2,2);
   // negative to get higher in NED. gravity is positive
   thrust = - (kpPosZ * err + kpVelZ * vel_err + KiPosZ*integratedAltitudeError + mass*(accelZCmd-CONST_GRAVITY)) / r22;

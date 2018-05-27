@@ -23,9 +23,9 @@ kpPosXY = 20.12
 #27.38
 #15.406
 # 1
-kpPosZ = 9.86
+kpPosZ = 15.4
 #1
-KiPosZ = 20
+KiPosZ = 14
 #20
 
 # Velocity control gains
@@ -33,7 +33,7 @@ kpVelXY = 8.52
 #9.8
 #7.065
 # 4
-kpVelZ = 5.65
+kpVelZ = 6.28
 #4
 
 # Angle control gains
