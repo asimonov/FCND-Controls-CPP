@@ -147,3 +147,23 @@ roughly like this:
 
 ![Motor Commands](./images/writeup/motor-commands.png)
 
+
+
+
+### Flight Evaluation
+
+#### 1. Your C++ controller is successfully able to fly the provided test trajectory and visually passes inspection of the scenarios leading up to the test trajectory
+
+For scenario 2 see above.
+
+Scenario 3:
+![Scenario 3](./images/writeup/scenario3.gif)
+
+Scenario 4:
+![Scenario 4](./images/writeup/scenario4.gif)
+
+Scenario 5:
+![Scenario 5](./images/writeup/scenario5.gif)
+
+Scenario With Multiple Quadrocopters:
+![Scenario 5](./images/writeup/scenario-many-quads.gif)
