@@ -149,6 +149,28 @@ roughly like this:
 
 #### 1. Your C++ controller is successfully able to fly the provided test trajectory and visually passes inspection of the scenarios leading up to the test trajectory
 
+I have used a relationship between Kp and Kd for a PD controller via
+rise time and delta damping factor rather than tuning Kp and Kd directly.
+
+The final tuned parameters used in all scenarios are:
+```
+# Position control gains
+kpPosXY = 27.4
+kpPosZ = 15.4
+KiPosZ = 14
+
+# Velocity control gains
+kpVelXY = 9.8
+kpVelZ = 6.28
+
+# Angle control gains
+kpBank = 14
+kpYaw = 5
+
+# Angle rate gains
+kpPQR = 75,75,11
+```
+
 Scenario 2:
 
 ![Scenario 2](./images/writeup/scenario2.gif)
@@ -168,3 +190,4 @@ Scenario 5:
 Scenario With Multiple Quadrocopters:
 
 ![Scenario 5](./images/writeup/scenario-many-quads.gif)
+
