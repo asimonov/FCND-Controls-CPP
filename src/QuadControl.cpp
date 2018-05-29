@@ -18,16 +18,16 @@ void QuadControl::Init()
 
   // variables needed for integral control
   integratedAltitudeError = 0;
-    
+
 #ifndef __PX4_NUTTX
   // Load params from simulator parameter system
   ParamsHandle config = SimpleConfig::GetInstance();
-   
+
   // Load parameters (default to 0)
   kpPosXY = config->Get(_config+".kpPosXY", 0);
   kpPosZ = config->Get(_config + ".kpPosZ", 0);
   KiPosZ = config->Get(_config + ".KiPosZ", 0);
-     
+
   kpVelXY = config->Get(_config + ".kpVelXY", 0);
   kpVelZ = config->Get(_config + ".kpVelZ", 0);
 
@@ -80,7 +80,8 @@ VehicleCommand QuadControl::GenerateMotorCommands(float collThrustCmd, V3F momen
   cmd.desiredThrustsN[2] = (collThrustCmd + txl - tyl - tzk) / 4.f; // rear left
   cmd.desiredThrustsN[3] = (collThrustCmd - txl - tyl + tzk) / 4.f; // rear right
 
-  // return thrust as positive. i.e. in body frame.
+  // return thrust as positive. i.e. in body frame
+  // also constrain each motor command to be within real world limits
   cmd.desiredThrustsN[0] = CONSTRAIN(cmd.desiredThrustsN[0], minMotorThrust, maxMotorThrust);
   cmd.desiredThrustsN[1] = CONSTRAIN(cmd.desiredThrustsN[1], minMotorThrust, maxMotorThrust);
   cmd.desiredThrustsN[2] = CONSTRAIN(cmd.desiredThrustsN[2], minMotorThrust, maxMotorThrust);
@@ -108,10 +109,9 @@ V3F QuadControl::BodyRateControl(V3F pqrCmd, V3F pqr)
   V3F momentCmd;
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+
   V3F err = pqrCmd - pqr;
-  momentCmd[0] = kpPQR[0] * err[0] * Ixx;
-  momentCmd[1] = kpPQR[1] * err[1] * Iyy;
-  momentCmd[2] = kpPQR[2] * err[2] * Izz;
+  momentCmd = kpPQR * err * V3F(Ixx, Iyy, Izz);
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -143,11 +143,12 @@ V3F QuadControl::RollPitchControl(V3F accelCmd, Quaternion<float> attitude, floa
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
   pqrCmd[2] = 0.f;
 
-  // this is acceleration. collective thrust command is positive value. but Z is down.
+  // this is acceleration. collective thrust command is positive value. but Z points down.
   float c_d = -collThrustCmd / mass;
 
   if (collThrustCmd > 0.0)
   {
+    // constrain maximum tilt in roll and pitch directions to maintain stability
     float target_R13 = CONSTRAIN(accelCmd[0] / c_d, -maxTiltAngle, maxTiltAngle);
     float target_R23 = CONSTRAIN(accelCmd[1] / c_d, -maxTiltAngle, maxTiltAngle);
 
@@ -160,7 +161,6 @@ V3F QuadControl::RollPitchControl(V3F accelCmd, Quaternion<float> attitude, floa
   }
   else
   {
-    // Otherwise command no rate
     pqrCmd[0] = 0.f;
     pqrCmd[1] = 0.f;
   }
@@ -193,25 +193,14 @@ float QuadControl::AltitudeControl(float posZCmd, float velZCmd, float posZ, flo
   float thrust = 0;
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+
   float err = posZCmd - posZ; // negative if need to get higher
-  float constrained_vel = velZCmd;
-//  if (constrained_vel>0.f)
-//    constrained_vel = CONSTRAIN(constrained_vel, 0.f, maxDescentRate);
-//  else
-//    constrained_vel = CONSTRAIN(constrained_vel, -maxAscentRate, 0.f);
+  float constrained_vel = CONSTRAIN(velZCmd, -maxAscentRate, maxDescentRate);
   float vel_err = constrained_vel - velZ;
-  // integral error.
-//  if (fabsf(vel_err) < 2.0f)
-    // only accumulate it when we are sufficiently close to target
-    integratedAltitudeError += err*dt;
-//  else
-    // reset integral
-//    integratedAltitudeError = 0.f;
-  float r22 = R(2,2);
-  // negative to get higher in NED. gravity is positive
-  thrust = - (kpPosZ * err + kpVelZ * vel_err + KiPosZ*integratedAltitudeError + mass*(accelZCmd-CONST_GRAVITY)) / r22;
-  // motors should not be saturated
-  //thrust = CONSTRAIN(thrust, 4.f*minMotorThrust, 4.f*maxMotorThrust);
+  integratedAltitudeError += err*dt;
+  // negative thrust si to get higher in NED. gravity is positive
+  thrust = - (kpPosZ * err + kpVelZ * vel_err + KiPosZ*integratedAltitudeError + mass*(accelZCmd-CONST_GRAVITY)) / R(2,2);
+
   /////////////////////////////// END STUDENT CODE ////////////////////////////
   return thrust;
 }
@@ -246,6 +235,7 @@ V3F QuadControl::LateralPositionControl(V3F posCmd, V3F velCmd, V3F pos, V3F vel
   V3F accelCmd = accelCmdFF;
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+
   V3F err = posCmd - pos;
   V3F constrainedVelCmd = velCmd;
   float v = sqrtf(velCmd.x*velCmd.x + velCmd.y*velCmd.y);
@@ -260,6 +250,7 @@ V3F QuadControl::LateralPositionControl(V3F posCmd, V3F velCmd, V3F pos, V3F vel
     accelCmd.x *= maxAccelXY / a;
     accelCmd.y *= maxAccelXY / a;
   }
+
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
   return accelCmd;
@@ -280,9 +271,18 @@ float QuadControl::YawControl(float yawCmd, float yaw)
 
   float yawRateCmd=0;
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+
   float err = yawCmd - yaw;
-  // because z is down it is negative for rotating counterclockwise
+  // adjust to rotate via smaller angle. e.g. 5 degrees, not -355 degrees
+  if (err > F_PI) {
+    err -= 2 * F_PI;
+  }
+  if (err < -F_PI) {
+    err += 2 * F_PI;
+  }
+
   yawRateCmd += kpYaw * err;
+
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
   return yawRateCmd;
@@ -298,9 +298,9 @@ VehicleCommand QuadControl::RunControl(float dt, float simTime)
   // reserve some thrust margin for angle control
   float thrustMargin = .1f*(maxMotorThrust - minMotorThrust);
   collThrustCmd = CONSTRAIN(collThrustCmd, (minMotorThrust+ thrustMargin)*4.f, (maxMotorThrust-thrustMargin)*4.f);
-  
+
   V3F desAcc = LateralPositionControl(curTrajPoint.position, curTrajPoint.velocity, estPos, estVel, curTrajPoint.accel);
-  
+
   V3F desOmega = RollPitchControl(desAcc, estAtt, collThrustCmd);
   desOmega.z = YawControl(curTrajPoint.attitude.Yaw(), estAtt.Yaw());
 
